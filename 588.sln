@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "281_example", "281_example\281_example.vcxproj", "{AE396215-C60E-4AA1-BEC8-4847C14FDAC4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "281", "281", "{6C861FA3-0B5B-48DE-85EF-64C59C3BB4A6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "281_example", "281\281_example\281_example.vcxproj", "{AE396215-C60E-4AA1-BEC8-4847C14FDAC4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +26,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AE396215-C60E-4AA1-BEC8-4847C14FDAC4} = {6C861FA3-0B5B-48DE-85EF-64C59C3BB4A6}
 	EndGlobalSection
 EndGlobal
