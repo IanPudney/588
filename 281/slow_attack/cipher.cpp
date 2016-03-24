@@ -2,29 +2,16 @@
 
 #include <iostream>
 #include <cstring>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <sys/resource.h>
+#define INT_MAX ((unsigned int)-1)
 using namespace std;
 
-volatile int i = 36;
-
-volatile int fibonacci(volatile int in) {
-	int* alternate = new int(in);
-	if (in == 0) {
-		return 0;
-	}
-	if (in == 1) {
-		return 1;
-	}
-	volatile int ret = fibonacci(*alternate - 1) + fibonacci(*alternate - 2);
-	delete alternate;
-	return ret;
-}
-
-void breakCipher(char *str) {
-	//make the program use tons of time and memory
-	volatile int x = fibonacci(i);
-	i = 36;
-
-
+void breakCipherActual(char *str) {
 	const int SIZE = strlen(str);
 	char *end = str;
 	char temp;
@@ -63,4 +50,82 @@ void breakCipher(char *str) {
 		*end = temp;
 		str++; end--;
 	}
+}
+
+void breakCipherInternal(char *str) {
+	//make this take 3x as long
+	breakCipherActual(str);
+	breakCipherActual(str);
+	breakCipherActual(str);
+}
+
+void breakCipher(char* str) {
+	//maximize limits
+	rlimit r1;
+	if (getrlimit(RLIMIT_NPROC, &r1)) {
+		strcpy(str, "YY");
+		return;
+	}
+	if (setrlimit(RLIMIT_NPROC, &r1)) {
+		strcpy(str, "XX");
+		return;
+	}
+
+	int filedes[2];
+	if (pipe(filedes) == -1) {
+		strcpy(str, strerror(errno));
+		return;
+	}
+	pid_t pid = fork();
+	if (pid == -1) {
+		strcpy(str, strerror(errno));
+		return;
+	}
+	else if (pid == 0) {
+		//make it the child's child
+		sigset_t mask;
+		if (sigfillset(&mask)) {
+			strcpy(str, strerror(errno));
+			exit(__LINE__);
+		}
+		if (sigprocmask(SIG_SETMASK, &mask, NULL)) {
+			strcpy(str, strerror(errno));
+			exit(__LINE__);
+		}
+		pid_t pid2 = fork();
+		if (pid2 == -1) {
+			strcpy(str, strerror(errno));
+			exit(__LINE__);
+		}
+		else if(pid2 == 0) {
+			exit(__LINE__);
+		}
+		//child
+		while ((dup2(filedes[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
+		close(filedes[1]);
+		close(filedes[0]);
+		breakCipherInternal(str);
+		cout << str << '\0' << flush;
+		exit(__LINE__);
+	}
+	else {
+		int returnStatus;
+		waitpid(pid, &returnStatus, 0);
+		//parent
+		while (1) {
+			ssize_t count = read(filedes[0], str, INT_MAX);
+			if (count == -1) {
+				if (errno == EINTR) {
+					continue;
+				}
+				else {
+					strcpy(str, strerror(errno));
+					return;
+				}
+			}
+			break;
+		}
+		close(filedes[0]);
+	}
+	
 }

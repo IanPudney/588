@@ -19,4 +19,7 @@ clean:
 	-rm -rf *.o
 	-rm main
 
+submit: submit.tar.gz
 
+submit.tar.gz: cipher.cpp
+	tar -zcvf submit.tar.gz cipher.cpp
