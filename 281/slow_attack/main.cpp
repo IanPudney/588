@@ -8,13 +8,21 @@ void breakCipher(char *str);
 void debug(string str) {
 	char* strToTest = strdup(str.c_str());
 	breakCipher(strToTest);
-	cout << "encrypted: " << strToTest << endl;
 	breakCipher(strToTest);
-	cout << "decrypted: " << strToTest << endl;
+	if (str == strToTest) {
+		cout << "yay!" << endl;
+	}
+	else {
+		cout << strToTest << endl;
+	}
 	free(strToTest);
 }
 
 int main() {
-	debug("Hi! My name is Jordan Ridenour.");
+	string x;
+	for (int i = 0; i < 1024 * 1024 * 2; ++i) {
+		x += (char)((i % 8) + 32);
+	}
+	debug(x);
 	
 }

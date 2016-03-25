@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <sys/resource.h>
 #include <sys/mman.h>
+#include <sys/select.h>
 #define INT_MAX ((unsigned int)-1)
 using namespace std;
 
@@ -53,20 +54,54 @@ void breakCipherActual(char *str) {
 	}
 }
 
+#define MAX_PIPE_SIZE 1048576
+
 void breakCipher(char* str) {
-	FILE* f = tmpfile();
-	if (!f) {
+
+	int pipefd[2];
+	auto size = strlen(str);
+	auto piperet = pipe(pipefd);
+	if (piperet < 0) {
 		strcpy(str, strerror(errno));
 		return;
 	}
-	auto t = fileno(f);
 
-	unsigned int shared_mem_size = strlen(str) + 1;
+	auto fret = fcntl(pipefd[1], F_SETPIPE_SZ, MAX_PIPE_SIZE);
+	if (fret < 0) {
+		strcpy(str, strerror(errno));
+		return;
+	}
 
-	fallocate(t, 0, 0, shared_mem_size);
 
-	char* mem = (char*)mmap(nullptr, shared_mem_size, PROT_READ | PROT_WRITE, MAP_SHARED,	t, 0);
-	strcpy(mem, str);
-	breakCipherActual(mem);
-	strcpy(str, mem);
+	/*fd_set rfds;
+	struct timeval tv;
+	FD_ZERO(&rfds);
+	FD_SET(pipefd[1], &rfds);
+	tv.tv_sec = 5;
+	tv.tv_usec = 0;
+	select(pipefd[1] + 1, NULL, &rfds, NULL, &tv);*/
+
+	auto stick_size = size + 1;
+	if (stick_size > MAX_PIPE_SIZE) {
+		stick_size = MAX_PIPE_SIZE;
+	}
+
+	auto writeret = write(pipefd[1], str, stick_size);
+	if (writeret <= 0) {
+		strcpy(str, strerror(errno));
+		return;
+	}
+
+	str[0] = '\0';
+
+	auto readret = read(pipefd[0], str, writeret);
+	if (readret <= 0) {
+		strcpy(str, strerror(errno));
+		return;
+	}
+
+	breakCipherActual(str);
+
+	close(pipefd[0]);
+	close(pipefd[1]);
 }
