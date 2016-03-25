@@ -1,6 +1,14 @@
 #include <string>
 #include <iostream>
 #include <string.h>
+
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <thread>
+#include <iostream>
 using namespace std;
 
 void breakCipher(char *str);
