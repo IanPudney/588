@@ -7,7 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "281", "281", "{6C861FA3-0B5
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example", "281\example\example.vcxproj", "{AE396215-C60E-4AA1-BEC8-4847C14FDAC4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "slow_attack", "281\slow_attack\slow_attack.vcxproj", "{B8A88634-9D5B-4C90-8B8F-693DB95A1730}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pipe_attack", "281\pipe_attack\pipe_attack.vcxproj", "{B8A88634-9D5B-4C90-8B8F-693DB95A1730}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmap_attack", "281\mmap_attack\mmap_attack.vcxproj", "{8B39550F-E8FF-48F2-AAD3-473CFAD5A142}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,14 @@ Global
 		{B8A88634-9D5B-4C90-8B8F-693DB95A1730}.Release|x64.Build.0 = Release|x64
 		{B8A88634-9D5B-4C90-8B8F-693DB95A1730}.Release|x86.ActiveCfg = Release|Win32
 		{B8A88634-9D5B-4C90-8B8F-693DB95A1730}.Release|x86.Build.0 = Release|Win32
+		{8B39550F-E8FF-48F2-AAD3-473CFAD5A142}.Debug|x64.ActiveCfg = Debug|x64
+		{8B39550F-E8FF-48F2-AAD3-473CFAD5A142}.Debug|x64.Build.0 = Debug|x64
+		{8B39550F-E8FF-48F2-AAD3-473CFAD5A142}.Debug|x86.ActiveCfg = Debug|Win32
+		{8B39550F-E8FF-48F2-AAD3-473CFAD5A142}.Debug|x86.Build.0 = Debug|Win32
+		{8B39550F-E8FF-48F2-AAD3-473CFAD5A142}.Release|x64.ActiveCfg = Release|x64
+		{8B39550F-E8FF-48F2-AAD3-473CFAD5A142}.Release|x64.Build.0 = Release|x64
+		{8B39550F-E8FF-48F2-AAD3-473CFAD5A142}.Release|x86.ActiveCfg = Release|Win32
+		{8B39550F-E8FF-48F2-AAD3-473CFAD5A142}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -40,5 +50,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{AE396215-C60E-4AA1-BEC8-4847C14FDAC4} = {6C861FA3-0B5B-48DE-85EF-64C59C3BB4A6}
 		{B8A88634-9D5B-4C90-8B8F-693DB95A1730} = {6C861FA3-0B5B-48DE-85EF-64C59C3BB4A6}
+		{8B39550F-E8FF-48F2-AAD3-473CFAD5A142} = {6C861FA3-0B5B-48DE-85EF-64C59C3BB4A6}
 	EndGlobalSection
 EndGlobal
