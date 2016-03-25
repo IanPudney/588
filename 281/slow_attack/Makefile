@@ -10,10 +10,10 @@ main: $(CPP_OBJ_FILES)
 	g++ $(CPP_OBJ_FILES) -o main
 
 %.o: %.cpp $(H_FILES)
-	g++ $< -I -ldl -std=c++11 -c -o $@ -O3
+	g++ $< -I -ldl -std=c++11 -c -o $@ -g
 	
 %.o: %.cc $(H_FILES)
-	g++ $< -I -ldl -std=c++11 -c -o $@ -O3
+	g++ $< -I -ldl -std=c++11 -c -o $@ -g
 
 clean:
 	-rm -rf *.o
