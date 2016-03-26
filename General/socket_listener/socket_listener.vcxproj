@@ -76,16 +76,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="socketDemo1.cpp" />
-    <ClCompile Include="socketDemo2.cpp" />
-    <ClCompile Include="socketDemo3.cpp" />
-    <ClCompile Include="socketDemo4.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="headers.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

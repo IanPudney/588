@@ -19,11 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8B39550F-E8FF-48F2-AAD3-473CFAD5A142}</ProjectGuid>
+    <ProjectGuid>{CE1A1784-ECF6-4B57-8AF5-F702268EED78}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>My281_example</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>mmap_attack</ProjectName>
+    <ProjectName>vfork_attack</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
