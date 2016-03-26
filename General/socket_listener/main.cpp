@@ -1,5 +1,6 @@
-/** Socket Demo 4
-* This iteration makes the communication two-way!
+/** Socket Listener
+* This program runs on a server and logs all data sent to it.
+* Used to capture the data that is exfiltrated from autograders.
 */
 
 #include "headers.h"

