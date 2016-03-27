@@ -26,11 +26,11 @@
     <ClInclude Include="hello.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{47CE7323-8ADA-41FB-B672-C5A12AB07D11}</ProjectGuid>
+    <ProjectGuid>{BF80EC19-1BF8-40D2-AB5C-167FA3D6B5AA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>My281_example</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>leak_attack</ProjectName>
+    <ProjectName>persistent_attack</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

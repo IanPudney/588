@@ -31,8 +31,9 @@ _commit_creds commit_creds;
 _prepare_kernel_cred prepare_kernel_cred;
 
 #define STRUCT_LEN (0xb8 - 0x30)
-#define COMMIT_CREDS_ADDR (0xffffffff81094250)
-#define PREPARE_KERNEL_CREDS_ADDR (0xffffffff81094550)
+//TODO: these addresses are for my specific Ubuntu version. Change them to match the autograder version.
+#define COMMIT_CREDS_ADDR (0xffffffff81095710)
+#define PREPARE_KERNEL_CREDS_ADDR (0xffffffff81095a10)
 
 struct key_type {
 	char * name;
