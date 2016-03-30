@@ -1,0 +1,2 @@
+- Submission system is broken up into two source-visible scripts. One packages (perl) and one does the mailing (python).
+- impersonation line is 109 and 306 in the perl script and line 7 in the python script.

