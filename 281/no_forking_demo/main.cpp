@@ -9,14 +9,15 @@ using namespace std;
 int main() {
 	pid_t pid = fork();
 	if(pid == 0) {
-		//sandbox this, so it doesn't affect other processes of the same user
-		unshare(CLONE_NEWUSER);
-
 		//set limit
 		rlimit limits;
 		limits.rlim_cur = 0;
 		limits.rlim_max = 0;
 		setrlimit(RLIMIT_NPROC, &limits);
+
+		//check my limits
+		getrlimit(RLIMIT_NPROC, &limits);
+		cout << "child limit: " << limits.rlim_max << endl;
 
 		//verify this worked
 		pid_t shouldFail = fork();
@@ -26,9 +27,15 @@ int main() {
 			cout << "incorrectly succeeded" << endl;
 		}
 	} else {
-		int status;
-		waitpid(pid, &status, 0);
-		//verify that other proceses were unaffected
+		//wait for the child process to finish
+		wait(0);
+
+		//check my limits
+		rlimit limits;
+		getrlimit(RLIMIT_NPROC, &limits);
+		cout << "parent limit: " << limits.rlim_max << endl;
+	
+		//verify that we can create processes
 		pid_t shouldSucceed = fork();
 		if(shouldSucceed == 0) return 0;
 		else if(shouldSucceed > 0) {
