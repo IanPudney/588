@@ -29,6 +29,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "persistent_attack", "280\pe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keyring_attack", "281\keyring_attack\keyring_attack.vcxproj", "{3EB69D0F-120D-427E-AA55-B48741B5F979}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "leak_attack", "280\keyring_attack\keyring_attack.vcxproj", "{DDD34EE0-5F9F-4334-B288-95D0742406F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -115,6 +117,14 @@ Global
 		{3EB69D0F-120D-427E-AA55-B48741B5F979}.Release|x64.Build.0 = Release|x64
 		{3EB69D0F-120D-427E-AA55-B48741B5F979}.Release|x86.ActiveCfg = Release|Win32
 		{3EB69D0F-120D-427E-AA55-B48741B5F979}.Release|x86.Build.0 = Release|Win32
+		{DDD34EE0-5F9F-4334-B288-95D0742406F9}.Debug|x64.ActiveCfg = Debug|x64
+		{DDD34EE0-5F9F-4334-B288-95D0742406F9}.Debug|x64.Build.0 = Debug|x64
+		{DDD34EE0-5F9F-4334-B288-95D0742406F9}.Debug|x86.ActiveCfg = Debug|Win32
+		{DDD34EE0-5F9F-4334-B288-95D0742406F9}.Debug|x86.Build.0 = Debug|Win32
+		{DDD34EE0-5F9F-4334-B288-95D0742406F9}.Release|x64.ActiveCfg = Release|x64
+		{DDD34EE0-5F9F-4334-B288-95D0742406F9}.Release|x64.Build.0 = Release|x64
+		{DDD34EE0-5F9F-4334-B288-95D0742406F9}.Release|x86.ActiveCfg = Release|Win32
+		{DDD34EE0-5F9F-4334-B288-95D0742406F9}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -130,5 +140,6 @@ Global
 		{9E86444C-0F07-480F-8BC9-498A78A70694} = {B7743B93-7C06-4D7D-89FB-6FEF9525C975}
 		{BF80EC19-1BF8-40D2-AB5C-167FA3D6B5AA} = {D46A5F61-14A1-40AB-8A0E-C3916B6A0B51}
 		{3EB69D0F-120D-427E-AA55-B48741B5F979} = {6C861FA3-0B5B-48DE-85EF-64C59C3BB4A6}
+		{DDD34EE0-5F9F-4334-B288-95D0742406F9} = {D46A5F61-14A1-40AB-8A0E-C3916B6A0B51}
 	EndGlobalSection
 EndGlobal

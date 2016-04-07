@@ -26,7 +26,7 @@
     <ClInclude Include="hello.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{47CE7323-8ADA-41FB-B672-C5A12AB07D11}</ProjectGuid>
+    <ProjectGuid>{DDD34EE0-5F9F-4334-B288-95D0742406F9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>My281_example</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
